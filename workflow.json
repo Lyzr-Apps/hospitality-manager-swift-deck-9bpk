@@ -1,0 +1,19 @@
+{
+  "nodes": [
+    {"id": "input_node", "type": "Input", "label": "User Query", "nodeCategory": "input"},
+    {"id": "reservation_agent", "type": "Agent", "label": "Reservation & Booking Agent", "nodeCategory": "agent"},
+    {"id": "staffing_agent", "type": "Agent", "label": "Staff Scheduling Agent", "nodeCategory": "agent"},
+    {"id": "inventory_agent", "type": "Agent", "label": "Inventory & Supply Agent", "nodeCategory": "agent"},
+    {"id": "customer_agent", "type": "Agent", "label": "Customer Relationship Agent", "nodeCategory": "agent"},
+    {"id": "finance_agent", "type": "Agent", "label": "Financial Reporting Agent", "nodeCategory": "agent"},
+    {"id": "operations_agent", "type": "Agent", "label": "Operations Coordinator Agent", "nodeCategory": "agent"}
+  ],
+  "edges": [
+    {"source": "input_node", "target": "reservation_agent"},
+    {"source": "input_node", "target": "staffing_agent"},
+    {"source": "input_node", "target": "inventory_agent"},
+    {"source": "input_node", "target": "customer_agent"},
+    {"source": "input_node", "target": "finance_agent"},
+    {"source": "input_node", "target": "operations_agent"}
+  ]
+}

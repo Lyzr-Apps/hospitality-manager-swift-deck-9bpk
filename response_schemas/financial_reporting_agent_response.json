@@ -1,0 +1,40 @@
+{
+  "agent_name": "Financial Reporting Agent",
+  "agent_id": "699c96c5b2047f2008d8c352",
+  "description": "Analyzes revenue, expense, and occupancy data provided by the user to generate financial summaries, trend insights, and actionable recommendations for cost optimization.",
+  "agent_type": "json",
+  "accessor": "result",
+  "auto_generated": true,
+  "response_schema": {
+    "message": "string",
+    "financial_data": [
+      {
+        "metric": "string",
+        "value": "string",
+        "trend": "string",
+        "period": "string",
+        "notes": "string"
+      }
+    ],
+    "recommendations": [
+      "string"
+    ],
+    "summary": "string"
+  },
+  "example_response": {
+    "message": "The main response message",
+    "financial_data": [
+      {
+        "metric": "sample string",
+        "value": "sample string",
+        "trend": "sample string",
+        "period": "sample string",
+        "notes": "sample string"
+      }
+    ],
+    "recommendations": [
+      "sample string"
+    ],
+    "summary": "Executive summary of financial status"
+  }
+}

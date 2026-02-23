@@ -1,0 +1,50 @@
+{
+  "agent_name": "Staff Scheduling Agent",
+  "agent_id": "699c96c4ef8ae6d0193d54e5",
+  "description": "Creates and optimizes staff shift schedules, identifies coverage gaps, suggests shift swaps, and generates weekly rosters based on availability and labor constraints.",
+  "agent_type": "json",
+  "accessor": "result",
+  "auto_generated": true,
+  "response_schema": {
+    "message": "string",
+    "schedule": [
+      {
+        "day": "string",
+        "shifts": [
+          {
+            "staff_name": "string",
+            "role": "string",
+            "start_time": "string",
+            "end_time": "string",
+            "status": "string"
+          }
+        ]
+      }
+    ],
+    "warnings": [
+      "string"
+    ],
+    "summary": "string"
+  },
+  "example_response": {
+    "message": "The main response message",
+    "schedule": [
+      {
+        "day": "sample string",
+        "shifts": [
+          {
+            "staff_name": "sample string",
+            "role": "sample string",
+            "start_time": "sample string",
+            "end_time": "sample string",
+            "status": "sample string"
+          }
+        ]
+      }
+    ],
+    "warnings": [
+      "sample string"
+    ],
+    "summary": "Brief summary of the schedule"
+  }
+}

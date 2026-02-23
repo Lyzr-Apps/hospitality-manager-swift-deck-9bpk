@@ -1,0 +1,44 @@
+{
+  "agent_name": "Customer Relationship Agent",
+  "agent_id": "699c96c4ef8ae6d0193d54e7",
+  "description": "Manages guest profiles, tracks preferences and visit history, suggests personalized service actions, and helps compose follow-up communications for VIP or returning guests.",
+  "agent_type": "json",
+  "accessor": "result",
+  "auto_generated": true,
+  "response_schema": {
+    "message": "string",
+    "guests": [
+      {
+        "name": "string",
+        "contact": "string",
+        "vip_status": "string",
+        "visit_count": "string",
+        "preferences": "string",
+        "last_visit": "string",
+        "notes": "string"
+      }
+    ],
+    "recommendations": [
+      "string"
+    ],
+    "summary": "string"
+  },
+  "example_response": {
+    "message": "The main response message",
+    "guests": [
+      {
+        "name": "sample string",
+        "contact": "sample string",
+        "vip_status": "sample string",
+        "visit_count": "sample string",
+        "preferences": "sample string",
+        "last_visit": "sample string",
+        "notes": "sample string"
+      }
+    ],
+    "recommendations": [
+      "sample string"
+    ],
+    "summary": "Brief summary of CRM actions"
+  }
+}

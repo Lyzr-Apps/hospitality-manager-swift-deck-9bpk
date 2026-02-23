@@ -1,0 +1,54 @@
+{
+  "agent_name": "Inventory & Supply Agent",
+  "agent_id": "699c96c42559b648e45127ab",
+  "description": "Tracks inventory levels, generates restock recommendations, identifies usage patterns, and creates purchase order drafts based on consumption data provided by users.",
+  "agent_type": "json",
+  "accessor": "result",
+  "auto_generated": true,
+  "response_schema": {
+    "message": "string",
+    "inventory_items": [
+      {
+        "item_name": "string",
+        "category": "string",
+        "current_stock": "string",
+        "par_level": "string",
+        "status": "string",
+        "action_needed": "string"
+      }
+    ],
+    "restock_orders": [
+      {
+        "item_name": "string",
+        "quantity": "string",
+        "unit_cost": "string",
+        "total_cost": "string",
+        "priority": "string"
+      }
+    ],
+    "summary": "string"
+  },
+  "example_response": {
+    "message": "The main response message",
+    "inventory_items": [
+      {
+        "item_name": "sample string",
+        "category": "sample string",
+        "current_stock": "sample string",
+        "par_level": "sample string",
+        "status": "sample string",
+        "action_needed": "sample string"
+      }
+    ],
+    "restock_orders": [
+      {
+        "item_name": "sample string",
+        "quantity": "sample string",
+        "unit_cost": "sample string",
+        "total_cost": "sample string",
+        "priority": "sample string"
+      }
+    ],
+    "summary": "Brief summary of inventory status"
+  }
+}

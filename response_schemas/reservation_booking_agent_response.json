@@ -1,0 +1,40 @@
+{
+  "agent_name": "Reservation & Booking Agent",
+  "agent_id": "699c96c3ef8ae6d0193d54e3",
+  "description": "Manages restaurant table reservations and hotel room bookings. Helps users check availability, create/modify/cancel bookings, and resolve scheduling conflicts through conversation.",
+  "agent_type": "json",
+  "accessor": "result",
+  "auto_generated": true,
+  "response_schema": {
+    "message": "string",
+    "bookings": [
+      {
+        "id": "string",
+        "guest_name": "string",
+        "date": "string",
+        "time": "string",
+        "type": "string",
+        "party_size": "string",
+        "status": "string",
+        "special_requests": "string"
+      }
+    ],
+    "summary": "string"
+  },
+  "example_response": {
+    "message": "The main response message",
+    "bookings": [
+      {
+        "id": "sample string",
+        "guest_name": "sample string",
+        "date": "sample string",
+        "time": "sample string",
+        "type": "sample string",
+        "party_size": "sample string",
+        "status": "sample string",
+        "special_requests": "sample string"
+      }
+    ],
+    "summary": "Brief summary of the action taken"
+  }
+}

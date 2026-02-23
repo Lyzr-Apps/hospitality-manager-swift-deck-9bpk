@@ -1,0 +1,42 @@
+{
+  "agent_name": "Operations Coordinator Agent",
+  "agent_id": "699c96c53146f0934746a35f",
+  "description": "Helps coordinate cross-department and cross-property tasks, resolves operational issues, drafts SOPs, prioritizes daily action items, and provides situational decision support.",
+  "agent_type": "json",
+  "accessor": "result",
+  "auto_generated": true,
+  "response_schema": {
+    "message": "string",
+    "tasks": [
+      {
+        "task": "string",
+        "department": "string",
+        "priority": "string",
+        "deadline": "string",
+        "status": "string",
+        "assigned_to": "string"
+      }
+    ],
+    "action_plan": [
+      "string"
+    ],
+    "summary": "string"
+  },
+  "example_response": {
+    "message": "The main response message",
+    "tasks": [
+      {
+        "task": "sample string",
+        "department": "sample string",
+        "priority": "sample string",
+        "deadline": "sample string",
+        "status": "sample string",
+        "assigned_to": "sample string"
+      }
+    ],
+    "action_plan": [
+      "sample string"
+    ],
+    "summary": "Brief summary of operational status"
+  }
+}
