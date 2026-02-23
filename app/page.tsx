@@ -144,13 +144,104 @@ class ErrorBoundary extends React.Component<
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
+function deepExtractAgentData(obj: any, depth: number = 0): any {
+  if (depth > 6 || !obj) return obj
+  if (typeof obj === 'string') {
+    try {
+      const p = JSON.parse(obj)
+      if (typeof p === 'object' && p !== null) return deepExtractAgentData(p, depth + 1)
+      return { message: obj, summary: '' }
+    } catch {
+      return { message: obj, summary: '' }
+    }
+  }
+  if (typeof obj !== 'object' || obj === null) return { message: String(obj), summary: '' }
+
+  // Check if this object itself has agent schema fields
+  const agentKeys = ['message', 'bookings', 'schedule', 'inventory_items', 'guests', 'financial_data', 'tasks', 'summary', 'action_plan', 'warnings', 'restock_orders', 'recommendations']
+  const hasAgentKey = agentKeys.some(k => k in obj && obj[k] !== undefined && obj[k] !== null)
+  if (hasAgentKey && !('status' in obj && 'result' in obj)) {
+    // This IS the agent data — return it, but also resolve any stringified fields
+    const cleaned: any = { ...obj }
+    for (const k of agentKeys) {
+      if (typeof cleaned[k] === 'string' && (cleaned[k].startsWith('[') || cleaned[k].startsWith('{'))) {
+        try { cleaned[k] = JSON.parse(cleaned[k]) } catch { /* keep string */ }
+      }
+    }
+    return cleaned
+  }
+
+  // Unwrap common wrapper patterns
+  // Pattern: { status: 'success', result: { ...agentData } }
+  if (obj.status && typeof obj.result === 'object' && obj.result !== null) {
+    return deepExtractAgentData(obj.result, depth + 1)
+  }
+  if (obj.status && typeof obj.result === 'string') {
+    return deepExtractAgentData(obj.result, depth + 1)
+  }
+
+  // Pattern: { result: { ...agentData } } or { result: "jsonString" }
+  if ('result' in obj) {
+    return deepExtractAgentData(obj.result, depth + 1)
+  }
+
+  // Pattern: { response: { ... } }
+  if ('response' in obj && typeof obj.response === 'object' && obj.response !== null) {
+    return deepExtractAgentData(obj.response, depth + 1)
+  }
+  if ('response' in obj && typeof obj.response === 'string') {
+    return deepExtractAgentData(obj.response, depth + 1)
+  }
+
+  // Pattern: { text: "jsonString" or "plain text" }
+  if (typeof obj.text === 'string') {
+    try {
+      const tp = JSON.parse(obj.text)
+      if (typeof tp === 'object' && tp !== null) return deepExtractAgentData(tp, depth + 1)
+    } catch { /* plain text */ }
+    return { message: obj.text, summary: '' }
+  }
+
+  // Pattern: { data: { ... } }
+  if ('data' in obj && typeof obj.data === 'object' && obj.data !== null) {
+    return deepExtractAgentData(obj.data, depth + 1)
+  }
+
+  // Pattern: { message: "..." } with no agent keys — treat message as text
+  if (typeof obj.message === 'string' && !hasAgentKey) {
+    return { message: obj.message, summary: obj.summary || '' }
+  }
+
+  return obj
+}
+
 function parseAgentResponse(data: any): any {
   if (!data) return { message: '', summary: '' }
-  let parsed = data
-  if (typeof data === 'string') {
-    try { parsed = JSON.parse(data) } catch { parsed = { message: data, summary: '' } }
+  const extracted = deepExtractAgentData(data)
+  if (!extracted || (typeof extracted === 'object' && Object.keys(extracted).length === 0)) {
+    return { message: typeof data === 'string' ? data : JSON.stringify(data), summary: '' }
   }
-  return parsed
+  return extracted
+}
+
+function extractAgentText(parsed: any, rawData: any): string {
+  // Try multiple paths to find a displayable message
+  if (parsed?.message && typeof parsed.message === 'string' && parsed.message.trim()) return parsed.message
+  if (parsed?.summary && typeof parsed.summary === 'string' && parsed.summary.trim()) return parsed.summary
+  if (parsed?.text && typeof parsed.text === 'string' && parsed.text.trim()) return parsed.text
+  if (parsed?.response && typeof parsed.response === 'string' && parsed.response.trim()) return parsed.response
+  if (parsed?.answer && typeof parsed.answer === 'string' && parsed.answer.trim()) return parsed.answer
+  if (parsed?.content && typeof parsed.content === 'string' && parsed.content.trim()) return parsed.content
+  // If the parsed object has structured data but no message, generate a summary
+  if (parsed?.bookings && Array.isArray(parsed.bookings) && parsed.bookings.length > 0) return `Found ${parsed.bookings.length} booking(s). See details below.`
+  if (parsed?.schedule && Array.isArray(parsed.schedule) && parsed.schedule.length > 0) return `Schedule generated for ${parsed.schedule.length} day(s). See details below.`
+  if (parsed?.inventory_items && Array.isArray(parsed.inventory_items) && parsed.inventory_items.length > 0) return `Inventory report with ${parsed.inventory_items.length} item(s). See details below.`
+  if (parsed?.guests && Array.isArray(parsed.guests) && parsed.guests.length > 0) return `Found ${parsed.guests.length} guest profile(s). See details below.`
+  if (parsed?.financial_data && Array.isArray(parsed.financial_data) && parsed.financial_data.length > 0) return `Financial report with ${parsed.financial_data.length} metric(s). See details below.`
+  if (parsed?.tasks && Array.isArray(parsed.tasks) && parsed.tasks.length > 0) return `${parsed.tasks.length} task(s) identified. See details below.`
+  // Last resort
+  if (typeof rawData === 'string' && rawData.trim()) return rawData
+  return 'Agent response processed successfully.'
 }
 
 function renderMarkdown(text: string) {
@@ -303,13 +394,51 @@ function ChatInterface({ agentId, agentLabel, ctaText, messages, setMessages, lo
     try {
       const result = await callAIAgent(msg, agentId)
       if (result.success) {
-        const rawData = result?.response?.result
-        const parsed = parseAgentResponse(rawData)
-        const agentText = parsed?.message || parsed?.summary || (typeof rawData === 'string' ? rawData : 'Response received.')
+        // Try multiple access paths for the response data
+        // The API route returns: { success, response: { status, result, message }, raw_response }
+        const responseObj = result?.response
+        const rawResult = responseObj?.result
+        const rawMessage = responseObj?.message
+        const rawResponse = result?.raw_response
+
+        // Parse the agent's structured data from whatever nesting it comes in
+        // Try result first, then the full response object, then raw_response
+        let parsed = parseAgentResponse(rawResult)
+
+        // If parseAgentResponse didn't find agent schema fields, try the whole response
+        const hasAgentFields = parsed && typeof parsed === 'object' && (
+          parsed.bookings || parsed.schedule || parsed.inventory_items ||
+          parsed.guests || parsed.financial_data || parsed.tasks ||
+          (parsed.message && parsed.message !== '')
+        )
+
+        if (!hasAgentFields) {
+          // Try parsing the full response object
+          const altParsed = parseAgentResponse(responseObj)
+          const altHasFields = altParsed && typeof altParsed === 'object' && (
+            altParsed.bookings || altParsed.schedule || altParsed.inventory_items ||
+            altParsed.guests || altParsed.financial_data || altParsed.tasks ||
+            (altParsed.message && altParsed.message !== '')
+          )
+          if (altHasFields) parsed = altParsed
+
+          // Try parsing raw_response string
+          if (!altHasFields && rawResponse) {
+            const rawParsed = parseAgentResponse(rawResponse)
+            const rawHasFields = rawParsed && typeof rawParsed === 'object' && (
+              rawParsed.bookings || rawParsed.schedule || rawParsed.inventory_items ||
+              rawParsed.guests || rawParsed.financial_data || rawParsed.tasks ||
+              (rawParsed.message && rawParsed.message !== '')
+            )
+            if (rawHasFields) parsed = rawParsed
+          }
+        }
+
+        const agentText = extractAgentText(parsed, rawMessage || rawResult)
         const agentMsg: ChatMessage = { role: 'agent', text: agentText, data: parsed, timestamp: getTimeStr() }
         setMessages(prev => [...prev, agentMsg])
       } else {
-        const errText = result?.error || 'Something went wrong. Please try again.'
+        const errText = result?.error || result?.response?.message || 'Something went wrong. Please try again.'
         setMessages(prev => [...prev, { role: 'agent', text: errText, timestamp: getTimeStr() }])
       }
     } catch {
